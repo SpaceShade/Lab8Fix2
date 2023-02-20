@@ -1,20 +1,20 @@
-name: Jekyll site CI
+name: deploy on push
+on: [push]
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  build:
-
+  deploy-app:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the site in the jekyll/builder container
-      run: |
-        docker run \
-        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+    - name: check out the code to build server
+      uses: actions/checkout@v3
+    - name: copy file to server 
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{secrets.PROD_HOST}}
+        username: ${{secrets.SSH_USER_NAME}}
+        port: ${{secrets.SSH_PORT}}
+        key: ${{secrets.SSH_KEY}}
+        source: "./html/*"
+        target: "/var/www/html"
+        strip_components: 1
